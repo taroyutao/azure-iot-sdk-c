@@ -322,7 +322,7 @@ int tpm_msr_get_ek(TPM_INFO_HANDLE handle, unsigned char* data_pos, size_t* key_
         }
         else
         {
-            INT32 len = *key_len;
+            INT32 len = (INT32)*key_len;
             *key_len = (size_t)TPM2B_PUBLIC_Marshal(&handle->ek_pub, &data_pos, &len);
             result = 0;
         }
@@ -347,7 +347,7 @@ int tpm_msr_get_srk(TPM_INFO_HANDLE handle, unsigned char* data_pos, size_t* key
         }
         else
         {
-            INT32 len = *key_len;
+            INT32 len = (INT32)*key_len;
             *key_len = (size_t)TPM2B_PUBLIC_Marshal(&handle->srk_pub, &data_pos, &len);
             result = 0;
         }
@@ -391,7 +391,7 @@ int tpm_msr_sign_data(TPM_INFO_HANDLE handle, const unsigned char* data, size_t 
         BYTE* data_copy = (unsigned char*)data;
 
         /* Codes_SRS_HSM_CLIENT_TPM_07_021: [ hsm_client_tpm_sign_data shall call into the tpm to hash the supplied data value. ] */
-        *signed_len = SignData(&handle->tpm_device, &null_pw_sess, data_copy, (UINT32)data_len, data_signature, *signed_len);
+        *signed_len = (size_t)SignData(&handle->tpm_device, &null_pw_sess, data_copy, (UINT32)data_len, data_signature, (INT32)*signed_len);
         if (*signed_len == 0)
         {
             /* Codes_SRS_HSM_CLIENT_TPM_07_023: [ If an error is encountered hsm_client_tpm_sign_data shall return NULL. ] */
