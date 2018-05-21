@@ -1092,4 +1092,3 @@ TEST_FUNCTION(IoTHubDeviceTwin_UpdateModuleTwin_happy_path_status_code_200)
 }
 
 END_TEST_SUITE(iothub_devicetwin_ut)
-    

@@ -12,24 +12,34 @@ compileAsC99()
 
 set(iothub_client_c_files
     ./src/iothub_client.c
+    ./src/iothub_client_core.c
+    ./src/iothub_client_core_ll.c
     ./src/iothub_client_diagnostic.c
     ./src/iothub_client_ll.c
+    ./src/iothub_device_client.c
+    ./src/iothub_device_client_ll.c
     ./src/iothub_message.c
+    ./src/iothub_module_client.c
+    ./src/iothub_module_client_ll.c
     ./src/iothubtransport.c
     ./src/version.c
 )
 
 set(iothub_client_h_files
-    ./inc/blob.h
+    ./inc/iothub_client_core.h
+    ./inc/iothub_client_core_ll.h
     ./inc/iothub_client.h
+    ./inc/internal/iothub_client_common.h
     ./inc/iothub_client_ll.h
-    ./inc/iothub_client_diagnostic.h
+    ./inc/internal/iothub_client_diagnostic.h
     ./inc/iothub_client_options.h
-    ./inc/iothub_client_private.h
+    ./inc/internal/iothub_client_private.h
     ./inc/iothub_client_version.h
+    ./inc/iothub_device_client.h
+    ./inc/iothub_device_client_ll.h
     ./inc/iothub_transport_ll.h
     ./inc/iothub_message.h
-    ./inc/iothubtransport.h
+    ./inc/internal/iothubtransport.h
 )
 
 set(iothub_client_libs)
@@ -47,15 +57,31 @@ if(NOT dont_use_uploadtoblob)
 
     set(iothub_client_h_files
         ${iothub_client_h_files}
-        ./inc/blob.h
-        ./inc/iothub_client_ll_uploadtoblob.h
+        ./inc/internal/blob.h
+        ./inc/internal/iothub_client_ll_uploadtoblob.h
     )
 endif()
 
+#this is around for back compat only
 if (${use_prov_client})
     set(iothub_client_h_files
         ${iothub_client_h_files}
-        ./inc/iothub_client_hsm_ll.h
+        ./inc/internal/iothub_client_hsm_ll.h
+    )
+endif()
+#end back compat only
+
+if (${use_edge_modules})
+    set(iothub_client_c_files
+        ${iothub_client_c_files}
+        ./src/iothub_client_ll_edge.c
+        ./src/iothub_client_edge.c
+    )
+    
+    set(iothub_client_h_files
+        ${iothub_client_h_files}
+        ./inc/iothub_client_ll_edge.h
+        ./inc/iothub_client_edge.h
     )
 endif()
 
@@ -74,8 +100,8 @@ if(${use_http})
     )
 
     set(iothub_client_http_transport_h_files
-        ./inc/iothub_client_authorization.h
-        ./inc/iothub_client_retry_control.h
+        ./inc/internal/iothub_client_authorization.h
+        ./inc/internal/iothub_client_retry_control.h
         ./inc/iothubtransporthttp.h
         ./inc/iothub_transport_ll.h
     )
@@ -108,18 +134,18 @@ if(${use_amqp})
     )
 
     set(iothub_client_amqp_transport_common_h_files
-        ./inc/iothub_client_authorization.h
-        ./inc/iothub_client_retry_control.h
-        ./inc/iothubtransport_amqp_common.h
-        ./inc/iothubtransport_amqp_device.h
-        ./inc/iothubtransport_amqp_cbs_auth.h
-        ./inc/iothubtransport_amqp_connection.h
-        ./inc/iothubtransport_amqp_telemetry_messenger.h
-        ./inc/iothubtransport_amqp_twin_messenger.h
-        ./inc/iothubtransport_amqp_messenger.h
-        ./inc/iothubtransportamqp_methods.h
-        ./inc/message_queue.h
-        ./inc/uamqp_messaging.h
+        ./inc/internal/iothub_client_authorization.h
+        ./inc/internal/iothub_client_retry_control.h
+        ./inc/internal/iothubtransport_amqp_common.h
+        ./inc/internal/iothubtransport_amqp_device.h
+        ./inc/internal/iothubtransport_amqp_cbs_auth.h
+        ./inc/internal/iothubtransport_amqp_connection.h
+        ./inc/internal/iothubtransport_amqp_telemetry_messenger.h
+        ./inc/internal/iothubtransport_amqp_twin_messenger.h
+        ./inc/internal/iothubtransport_amqp_messenger.h
+        ./inc/internal/iothubtransportamqp_methods.h
+        ./inc/internal/message_queue.h
+        ./inc/internal/uamqp_messaging.h
     )
 
     set(iothub_client_amqp_transport_c_files
@@ -165,19 +191,23 @@ if(${use_mqtt})
         ./src/iothubtransportmqtt_websockets.c
     )
     set(iothub_client_mqtt_ws_transport_h_files
-        ./inc/iothub_client_authorization.h
-        ./inc/iothub_client_retry_control.h
-        ./inc/iothubtransport_mqtt_common.h
+        ./inc/internal/iothub_client_authorization.h
+        ./inc/internal/iothub_client_retry_control.h
+        ./inc/internal/iothubtransport_mqtt_common.h
         ./inc/iothubtransportmqtt_websockets.h
     )
 
     set(iothub_client_mqtt_transport_c_files
+        ./src/iothub_client_authorization.c
+        ./src/iothub_client_retry_control.c
         ./src/iothubtransport_mqtt_common.c
         ./src/iothubtransportmqtt.c
     )
 
     set(iothub_client_mqtt_transport_h_files
-        ./inc/iothubtransport_mqtt_common.h
+        ./inc/internal/iothub_client_authorization.h
+        ./inc/internal/iothub_client_retry_control.h
+        ./inc/internal/iothubtransport_mqtt_common.h
         ./inc/iothubtransportmqtt.h
     )
 
@@ -203,7 +233,7 @@ if(${use_amqp})
     set(IOTHUB_CLIENT_AMQP_TRANSPORT_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using iothub_client_amqp_transport lib" FORCE)
 endif()
 
-set(IOTHUB_CLIENT_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "this is what needs to be included if using iothub_client lib" FORCE)
+set(IOTHUB_CLIENT_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc ${CMAKE_CURRENT_LIST_DIR}/inc/internal CACHE INTERNAL "this is what needs to be included if using iothub_client lib" FORCE)
 
 
 if(NOT ${dont_use_uploadtoblob})
@@ -341,13 +371,16 @@ IF(WIN32)
     add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
 ENDIF(WIN32)
 
-if(${dont_use_uploadtoblob})
-    set(iothub_def_file ./src/iothub_client_dll_no_upload.def)
-else()
-    set(iothub_def_file ./src/iothub_client_dll.def)
-endif()
-
 if (${build_as_dynamic})
+    set(iothub_def_file ./src/iothub_client_dll.def)
+    if(NOT ${dont_use_uploadtoblob})
+        set(iothub_def_file ${iothub_def_file} ./src/upload_to_blob.def)
+    endif()
+    
+    if (${use_edge_modules})
+        set(iothub_def_file ${iothub_def_file} ./src/iothub_edge_modules.def)
+    endif()
+
     add_library(iothub_client_dll SHARED
         ${iothub_client_c_files}
         ${iothub_client_h_files}

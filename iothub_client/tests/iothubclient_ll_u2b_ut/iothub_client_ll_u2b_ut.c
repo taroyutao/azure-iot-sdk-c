@@ -46,7 +46,7 @@ static void* my_gballoc_calloc(size_t nmemb, size_t size)
 #include "azure_c_shared_utility/strings.h"
 #include "azure_c_shared_utility/urlencode.h"
 #include "azure_c_shared_utility/crt_abstractions.h"
-#include "blob.h"
+#include "internal/blob.h"
 #include "parson.h"
 
 MOCKABLE_FUNCTION(, JSON_Value*, json_parse_string, const char *, string);
@@ -260,7 +260,7 @@ static IOTHUB_CLIENT_FILE_UPLOAD_GET_DATA_RESULT FileUpload_GetData_Callback(IOT
 
 #undef ENABLE_MOCKS
 
-#include "iothub_client_ll_uploadtoblob.h"
+#include "internal/iothub_client_ll_uploadtoblob.h"
 
 TEST_DEFINE_ENUM_TYPE       (HTTPAPI_RESULT, HTTPAPI_RESULT_VALUES);
 IMPLEMENT_UMOCK_C_ENUM_TYPE (HTTPAPI_RESULT, HTTPAPI_RESULT_VALUES);
@@ -306,7 +306,7 @@ static const TRANSPORT_PROVIDER* provideFAKE(void);
 #define TEST_STRING_HANDLE_DEVICE_SAS ((STRING_HANDLE)0x2)
 
 #define TEST_API_VERSION "?api-version=2016-11-14"
-#define TEST_IOTHUB_SDK_VERSION "1.2.3"
+#define TEST_IOTHUB_SDK_VERSION "1.2.4"
 
 static const IOTHUB_CLIENT_CONFIG TEST_CONFIG_SAS =
 {

@@ -25,6 +25,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(MACOSX TRUE)
+    add_definitions(-DMACOSX)
 endif()
 
 include (CTest)
@@ -74,6 +75,12 @@ option(build_as_dynamic "build the IoT SDK libaries as dynamic"  OFF)
 option(build_network_e2e "build network E2E tests" OFF)
 option(use_prov_client "Enable provisioning client" OFF)
 option(use_tpm_simulator "tpm simulator type of hsm used with the provisioning client" OFF)
+option(use_edge_modules "Enable support for running modules against Azure IoT Edge" OFF)
+option(use_custom_heap "use externally defined heap functions instead of the malloc family" OFF)
+
+if(${use_custom_heap})
+    add_definitions(-DGB_USE_CUSTOM_HEAP)
+endif()
 
 message(STATUS "Provisioning client ${use_prov_client}")
 if(XCODE AND ${use_prov_client})
@@ -94,6 +101,14 @@ else()
     option(use_sample_trusted_cert "Set flag in samples to use SDK's built-in CA as TrustedCerts" OFF)
 endif()
 
+# Enable IoT SDK to act as a module for Edge
+if(${use_edge_modules})
+    set(use_prov_client ON)
+    set(use_http ON)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_EDGE_MODULES")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_EDGE_MODULES")
+endif()
+
 # Set Provisioning Information
 if (${use_prov_client})
     getProvSDKVersion()
@@ -102,6 +117,9 @@ if (${use_prov_client})
     if ("${hsm_custom_lib}" STREQUAL "")
         set(hsm_type_x509 ON)
         set(hsm_type_sastoken ON)
+        if(${use_edge_modules})
+            set(hsm_type_edge_module ON)
+        endif()
     else()
         set(hsm_type_custom ON)
     endif()
@@ -137,6 +155,8 @@ add_library(parson
 if(MSVC)
     set_source_files_properties(../deps/parson/parson.c PROPERTIES COMPILE_FLAGS "/wd4244 /wd4232")
 endif()
+set(parson_h_install_files ./deps/parson/parson.h)
+set(parson_install_libs parson)
 
 if(IN_OPENWRT)
     ADD_DEFINITIONS("$ENV{TARGET_LDFLAGS}" "$ENV{TARGET_CPPFLAGS}" "$ENV{TARGET_CFLAGS}")
@@ -325,6 +345,15 @@ if(${use_installed_dependencies})
     configure_file("configs/${PROJECT_NAME}Config.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake"
         COPYONLY
+    )
+
+    install(FILES ${parson_h_install_files} EXPORT azure_iot_sdksTargets
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
+    )
+    install(TARGETS ${parson_install_libs}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
     )
 
     install(EXPORT azure_iot_sdksTargets
