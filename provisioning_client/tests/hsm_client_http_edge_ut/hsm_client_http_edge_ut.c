@@ -76,7 +76,7 @@ static const char* TEST_CONST_CHAR_PTR = "TestConstChar";
 static JSON_Status TEST_JSON_STATUS = 0;
 static char* TEST_CHAR_PTR = "TestString";
 
-static const char * const TEST_ENV_EDGEVERSION = "Test-EdgeVersion";
+static const char * const TEST_ENV_MODULE_GENERATION_ID = "Test-ModuleGenerationId";
 static const char * const TEST_ENV_EDGEMODULEID = "Test-ModuleId";
 static const char * const TEST_ENV_EDGEURI = "http://127.0.0.1:8080";
 static const char * const TEST_ENV_EDGEURI_BAD_PROTOCOL = "badprotocol://127.0.0.1:8080";
@@ -397,7 +397,7 @@ static int should_skip_index(size_t current_index, const size_t skip_array[], si
 static void setup_hsm_client_http_edge_create_mock(const char* edge_uri_env, bool valid_edge_uri)
 {
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(environment_get_variable(IGNORED_PTR_ARG)).SetReturn(TEST_ENV_EDGEVERSION);
+    STRICT_EXPECTED_CALL(environment_get_variable(IGNORED_PTR_ARG)).SetReturn(TEST_ENV_MODULE_GENERATION_ID);
     STRICT_EXPECTED_CALL(environment_get_variable(IGNORED_PTR_ARG)).SetReturn(TEST_ENV_EDGEMODULEID);
     STRICT_EXPECTED_CALL(environment_get_variable(IGNORED_PTR_ARG)).SetReturn(edge_uri_env);
 

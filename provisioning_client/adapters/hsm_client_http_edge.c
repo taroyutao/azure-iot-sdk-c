@@ -18,6 +18,7 @@
 
 #include "parson.h"
 
+static const char* HSM_HTTP_EDGE_VERSION = "2018-06-28";
 static const char* HTTP_HEADER_KEY_CONTENT_TYPE = "Content-Type";
 static const char* HTTP_HEADER_VAL_CONTENT_TYPE = "application/json; charset=utf-8";
 static const char* HSM_EDGE_SIGN_JSON_KEY_ID = "keyId";
@@ -29,16 +30,15 @@ static const char* HSM_EDGE_SIGN_JSON_DIGEST = "digest";
 
 #include "hsm_client_http_edge.h"
 
-static const char* ENVIRONMENT_VAR_EDGEURI = "IOTEDGE_IOTEDGEDURI";
-static const char* ENVIRONMENT_VAR_EDGEVERSION = "IOTEDGE_IOTEDGEDVERSION";
+static const char* ENVIRONMENT_VAR_EDGEURI = "IOTEDGE_WORKLOADURI";
+static const char* ENVIRONMENT_VAR_MODULE_GENERATION_ID = "IOTEDGE_MODULEGENERATIONID";
 static const char* ENVIRONMENT_VAR_EDGEMODULEID = "IOTEDGE_MODULEID";
-
 
 typedef struct HSM_CLIENT_HTTP_EDGE
 {
     char* edge_hostname;
     int   edge_portnumber;
-    char* api_version; // IOTEDGE_IOTEDGEDVERSION
+    char* edge_module_generation_id;
     char* module_id;
 } HSM_CLIENT_HTTP_EDGE;
 
@@ -102,12 +102,12 @@ static int read_and_parse_edge_uri(HSM_CLIENT_HTTP_EDGE* hsm_client_http_edge)
 static int initialize_http_edge_device(HSM_CLIENT_HTTP_EDGE* hsm_client_http_edge)
 {
     int result;
-    const char* api_version;
+    const char* edge_module_generation_id;
     const char* module_id;
 
-    if ((api_version = environment_get_variable(ENVIRONMENT_VAR_EDGEVERSION)) == NULL)
+    if ((edge_module_generation_id = environment_get_variable(ENVIRONMENT_VAR_MODULE_GENERATION_ID)) == NULL)
     {
-        LogError("Environment variable %s not specified", ENVIRONMENT_VAR_EDGEVERSION);
+        LogError("Environment variable %s not specified", ENVIRONMENT_VAR_MODULE_GENERATION_ID);
         result = __FAILURE__;
     }
     else if ((module_id = environment_get_variable(ENVIRONMENT_VAR_EDGEMODULEID)) == NULL)
@@ -120,9 +120,9 @@ static int initialize_http_edge_device(HSM_CLIENT_HTTP_EDGE* hsm_client_http_edg
         LogError("read_and_parse_edge_uri failed");
         result = __FAILURE__;
     }
-    else if (mallocAndStrcpy_s(&hsm_client_http_edge->api_version, api_version) != 0)
+    else if (mallocAndStrcpy_s(&hsm_client_http_edge->edge_module_generation_id, edge_module_generation_id) != 0)
     {
-        LogError("Failed copying api_version");
+        LogError("Failed copying edge_module_generation_id");
         result = __FAILURE__;
     }
     else if (mallocAndStrcpy_s(&hsm_client_http_edge->module_id, module_id) != 0)
@@ -166,7 +166,7 @@ void hsm_client_http_edge_destroy(HSM_CLIENT_HANDLE handle)
     {
         HSM_CLIENT_HTTP_EDGE* hsm_client_http_edge = (HSM_CLIENT_HTTP_EDGE*)handle;
         free(hsm_client_http_edge->edge_hostname);
-        free(hsm_client_http_edge->api_version);
+        free(hsm_client_http_edge->edge_module_generation_id);
         free(hsm_client_http_edge->module_id);
         free(hsm_client_http_edge);
     }
@@ -378,7 +378,7 @@ static BUFFER_HANDLE send_http_signing_request(HSM_CLIENT_HTTP_EDGE* hsm_client_
     sign_context.continue_running = true;
     sign_context.http_response = NULL;
 
-    if ((uri_path = STRING_construct_sprintf("/modules/%s/sign?api-version=%s", hsm_client_http_edge->module_id, hsm_client_http_edge->api_version)) == NULL)
+    if ((uri_path = STRING_construct_sprintf("/modules/%s/sign?api-version=%s", hsm_client_http_edge->module_id, HSM_HTTP_EDGE_VERSION)) == NULL)
     {
         LogError("STRING_construct_sprintf failed");
         result = __FAILURE__;
