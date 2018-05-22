@@ -378,7 +378,7 @@ static BUFFER_HANDLE send_http_signing_request(HSM_CLIENT_HTTP_EDGE* hsm_client_
     sign_context.continue_running = true;
     sign_context.http_response = NULL;
 
-    if ((uri_path = STRING_construct_sprintf("/modules/%s/sign?api-version=%s", hsm_client_http_edge->module_id, HSM_HTTP_EDGE_VERSION)) == NULL)
+    if ((uri_path = STRING_construct_sprintf("/modules/%s/genid/%s/sign?api-version=%s", hsm_client_http_edge->module_id, hsm_client_http_edge->edge_module_generation_id, HSM_HTTP_EDGE_VERSION)) == NULL)
     {
         LogError("STRING_construct_sprintf failed");
         result = __FAILURE__;
