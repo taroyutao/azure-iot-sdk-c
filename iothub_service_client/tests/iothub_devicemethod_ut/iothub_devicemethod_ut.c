@@ -203,6 +203,8 @@ typedef struct IOTHUB_SERVICE_CLIENT_DEVICE_METHOD_TAG
     char* hostname;
     char* sharedAccessKey;
     char* keyName;
+    char* deviceId;
+    char* moduleId;
 } IOTHUB_SERVICE_CLIENT_DEVICE_METHOD;
 
 static IOTHUB_SERVICE_CLIENT_AUTH TEST_IOTHUB_SERVICE_CLIENT_AUTH;
